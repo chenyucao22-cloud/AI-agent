@@ -1,0 +1,54 @@
+name: Android Debug APK
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - uses: gradle/actions/setup-gradle@v4
+      - run: chmod +x gradlew
+      - run: ./gradlew --no-daemon assembleDebug testDebugUnitTest lintDebug
+      - name: Prepare phone download
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/debug/app-debug.apk dist/K40-Agent-debug.apk
+          cd dist
+          sha256sum K40-Agent-debug.apk > SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        id: apk
+        with:
+          name: K40-Agent-debug
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+      - name: Phone download instructions
+        env:
+          APK_ARTIFACT_URL: ${{ steps.apk.outputs.artifact-url }}
+        run: |
+          python3 - <<'PYTHON'
+          import os
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('## Android 手机下载\n\n')
+              summary.write('[下载 K40-Agent-debug.zip](' + os.environ['APK_ARTIFACT_URL'] + ')\n\n')
+              summary.write('请在手机浏览器登录 GitHub，下载并解压 ZIP，再打开 K40-Agent-debug.apk。无需电脑。\n\n')
+              summary.write('下载有效期30天；过期后可以使用 Run workflow 重新构建。若移动页面缺少下载入口，请启用浏览器的桌面版网站。\n')
+          PYTHON
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: verification-reports
+          path: |
+            app/build/reports/tests/
+            app/build/reports/lint-results-debug.html

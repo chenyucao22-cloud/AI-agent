@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.k40agent.automation.PolicyTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-10T16:52:33.052Z" hostname="a1d4b789739d" time="0.022">
+  <properties/>
+  <testcase name="requiresUserStartAndUnlockedAllowlistedWindow" classname="org.k40agent.automation.PolicyTest" time="0.018"/>
+  <testcase name="mutationsAlwaysRequireConfirmation" classname="org.k40agent.automation.PolicyTest" time="0.0"/>
+  <testcase name="stopRevokesEvenConfirmedActions" classname="org.k40agent.automation.PolicyTest" time="0.001"/>
+  <testcase name="stopPreventsQueuedHome" classname="org.k40agent.automation.PolicyTest" time="0.002"/>
+  <testcase name="demoOpensSettingsThenHome" classname="org.k40agent.automation.PolicyTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
