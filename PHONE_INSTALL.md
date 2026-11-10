@@ -1,6 +1,10 @@
 # 只用 Android 手机下载与安装
 
-此说明供代码上传 GitHub 并且 Actions 成功运行后使用。目前本地 APK 已生成；仓库地址与工作流运行链接必须以实际上传结果为准，不存在的链接不会预先填入。
+仓库：https://github.com/chenyucao22-cloud/AI-agent
+
+优先打开仓库的 **Releases**，选择已发布版本，在 **Assets** 点击 `K40-Agent-debug.apk`，无需登录、解压或电脑。若尚无已发布版本，等待发布工作流完成。
+
+以下为 Actions ZIP 的备用下载方式：
 
 1. 在手机 Chrome 或其他浏览器打开 GitHub 仓库并登录有仓库访问权限的 GitHub 账号。
 2. 进入 **Actions → Android Debug APK**，打开最新一次绿色勾号的运行记录。

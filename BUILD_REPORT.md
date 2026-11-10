@@ -41,4 +41,4 @@
 
 ## 交付位置
 
-完整工程位于 `/workspace/work/k40-agent`。指定的 `/codex/browser/projectless/0001-qq-codex/output` 在此云执行环境不存在，当前用户无法创建且 sudo 不可用，因此保留工作区中的工程和构建产物。未上传至外部服务或发布 GitHub 仓库；GitHub Actions 工作流已提供但未在 GitHub 上运行。
+完整工程位于 `/workspace/work/k40-agent`。指定的 `/codex/browser/projectless/0001-qq-codex/output` 在此云执行环境不存在，当前用户无法创建且 sudo 不可用，因此保留工作区中的工程和构建产物。初次本地构建时尚未上传；现已提交至 https://github.com/chenyucao22-cloud/AI-agent 。GitHub Actions 的实时结果以仓库 Actions 运行记录为准，Release APK 由通过测试和签名验证的发布工作流提供。

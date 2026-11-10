@@ -30,7 +30,7 @@ GitHub Actions `.github/workflows/android.yml` 自动安装 SDK，构建 APK、�
 
 ## 手机直接下载
 
-仅使用手机的完整步骤见 `PHONE_INSTALL.md`。Actions 成功后在运行摘要或 Artifacts 下载 `K40-Agent-debug`，解压 ZIP 后安装 APK；下载保留30天。
+仅使用手机的完整步骤见 `PHONE_INSTALL.md`。优先在本仓库 Releases 的 Assets 中直接下载 APK。Actions 成功后在运行摘要或 Artifacts 下载 `K40-Agent-debug`，解压 ZIP 后安装 APK；下载保留30天。
 
 ## 安装与使用
 

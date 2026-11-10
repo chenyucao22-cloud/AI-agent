@@ -3,6 +3,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      publish_release:
+        description: 'Publish v0.1.0 after build and signature verification'
+        type: boolean
+        default: false
 permissions:
   contents: read
 jobs:
@@ -16,6 +21,8 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
       - run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
       - uses: gradle/actions/setup-gradle@v4
       - run: chmod +x gradlew
@@ -24,6 +31,7 @@ jobs:
         run: |
           mkdir -p dist
           cp app/build/outputs/apk/debug/app-debug.apk dist/K40-Agent-debug.apk
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose dist/K40-Agent-debug.apk > dist/apk-signature.txt
           cd dist
           sha256sum K40-Agent-debug.apk > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
@@ -52,3 +60,38 @@ jobs:
           path: |
             app/build/reports/tests/
             app/build/reports/lint-results-debug.html
+
+  publish:
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_release && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: read
+    concurrency:
+      group: release-v0.1.0
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: K40-Agent-debug
+          path: dist
+      - name: Verify downloaded artifact
+        working-directory: dist
+        run: sha256sum --check SHA256SUMS.txt
+      - name: Publish verified APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if gh release view v0.1.0 --json isDraft > release-state.json; then
+            python3 -c 'import json; assert json.load(open("release-state.json"))["isDraft"], "Release already published; refuse replacement"'
+            gh release edit v0.1.0 --target "$GITHUB_SHA" --notes-file RELEASE_NOTES.md
+          else
+            gh release create v0.1.0 --draft --target "$GITHUB_SHA" --title "K40 Agent v0.1.0 — Debug 预览版" --notes-file RELEASE_NOTES.md
+          fi
+          gh release upload v0.1.0 dist/K40-Agent-debug.apk dist/SHA256SUMS.txt dist/apk-signature.txt --clobber
+          gh release edit v0.1.0 --draft=false --latest
+          gh release view v0.1.0 --json url --jq .url >> "$GITHUB_STEP_SUMMARY"
