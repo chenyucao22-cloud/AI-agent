@@ -3,7 +3,7 @@ android {
  namespace = "org.k40agent"
  compileSdk = 36
  buildToolsVersion = "36.0.0"
- defaultConfig { applicationId = "org.k40agent.minimal"; minSdk = 33; targetSdk = 36; versionCode = 2; versionName = "0.2.0-minimal"; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
+ defaultConfig { applicationId = "org.k40agent.controlled"; minSdk = 33; targetSdk = 36; versionCode = 3; versionName = "0.3.0-controlled"; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
  buildFeatures { compose = true }
  compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
  buildTypes { debug { isDebuggable = false }; release { isMinifyEnabled = false } }

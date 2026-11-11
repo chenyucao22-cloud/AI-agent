@@ -1,15 +1,14 @@
-K40 Agent 0.2.0 最小权限版
+K40 Agent 0.3.0 受控自动化版
 
-直接下载 Assets 中 **K40-Agent-minimal.apk**。无需电脑、解压、无障碍或 Shizuku。
+手机直接下载 **K40-Agent-controlled.apk**。应用名“K40 Agent 受控版”，独立包名 org.k40agent.controlled，与最小版并存。
 
-安全审查与修复详情见仓库 SECURITY_REVIEW.md，包含旧版真实 APK 权限清单和固定源码位置。
+- 使用 Android 官方无障碍服务，必须由用户在系统设置中手动开启。
+- Android 13 / MIUI 可能阻止侧载应用启用无障碍；本版不解除或绕过“受限制的设置”。若系统拒绝，自动操作不可用。
+- 固定目标、60秒会话、持续可见停止条。默认只允许本应用/Android设置，新增应用必须本机确认。
+- 选点、上滑、下滑、返回、桌面均需5秒内按住1.2秒确认，只执行一次；重要操作没有免确认路径。
+- 不遍历节点或读取 UI 文字，不截图、不联网、不启用远控；只核验窗口包名及几何信息。键盘或安全窗口出现时停止。
+- 确认与手势存在 Android 无法原子化的剩余竞态；不支持无人值守。已提交150ms手势无法保证撤回。
+- 最小版独立保留在 minimal-permissions 分支和 v0.2.0-minimal Release。
+- Actions 通过测试、成品权限检查和签名验证后发布。仍使用开发签名但禁用调试。尚未完成 K40 真机验收。
 
-- 成品零权限申请，无 AccessibilityService、ShizukuProvider、接收器或初始化 Provider。
-- 不读取其他应用节点/文字，不截图，不联网、不远程执行，无跨应用点击/滑动。
-- 仅本机用户按钮触发打开设置或回桌面；停止测试为应用内10秒计时，离开前台会取消。
-- debuggable=false，禁用备份；仍使用开发签名。
-- 独立包名 org.k40agent.minimal，可与旧版并存；请自行在系统中停用旧版无障碍，最小版不会替你修改权限。
-- 未绕过 Android 受限制设置。最小版没有需要启用的无障碍服务，也不等同于完整自动化版本。
-- GitHub Actions 构建、测试、成品权限门禁及签名校验成功后发布；尚未完成 K40 真机验证。
-
-附 SHA256SUMS.txt 与 apk-signature.txt。
+审查：SECURITY_REVIEW_CONTROLLED.md；手机验证：PHONE_INSTALL.md；未来接口设计：docs/BRIDGE_PROTOCOL.md。

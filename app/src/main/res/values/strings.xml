@@ -1,1 +1,1 @@
-<resources><string name="app_name">K40 Agent 最小版</string></resources>
+<resources><string name="app_name">K40 Agent 受控版</string><string name="service_description">由你主动启动60秒任务，只操作你允许的应用。选点与手势须逐次按住确认。仅检查窗口包名及边界，不遍历节点、不读取文字、不截图或联网。任务有可见停止条。</string></resources>

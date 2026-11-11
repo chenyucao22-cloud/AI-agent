@@ -1,11 +1,11 @@
-name: Android Minimal APK
+name: Android Controlled APK
 on:
   push:
   pull_request:
   workflow_dispatch:
     inputs:
       publish_release:
-        description: 'Publish v0.2.0-minimal after build and signature verification'
+        description: 'Publish v0.3.0-controlled after build and signature verification'
         type: boolean
         default: false
 permissions:
@@ -30,15 +30,15 @@ jobs:
       - name: Prepare phone download
         run: |
           mkdir -p dist
-          cp app/build/outputs/apk/debug/app-debug.apk dist/K40-Agent-minimal.apk
-          python3 scripts/verify_minimal_apk.py dist/K40-Agent-minimal.apk --aapt "$ANDROID_HOME/build-tools/36.0.0/aapt"
-          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose dist/K40-Agent-minimal.apk > dist/apk-signature.txt
+          cp app/build/outputs/apk/debug/app-debug.apk dist/K40-Agent-controlled.apk
+          python3 scripts/verify_controlled_apk.py dist/K40-Agent-controlled.apk --aapt "$ANDROID_HOME/build-tools/36.0.0/aapt"
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose dist/K40-Agent-controlled.apk > dist/apk-signature.txt
           cd dist
-          sha256sum K40-Agent-minimal.apk > SHA256SUMS.txt
+          sha256sum K40-Agent-controlled.apk > SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         id: apk
         with:
-          name: K40-Agent-minimal
+          name: K40-Agent-controlled
           path: dist/
           if-no-files-found: error
           retention-days: 30
@@ -50,8 +50,8 @@ jobs:
           import os
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
               summary.write('## Android 手机下载\n\n')
-              summary.write('[下载 K40-Agent-minimal.zip](' + os.environ['APK_ARTIFACT_URL'] + ')\n\n')
-              summary.write('请在手机浏览器登录 GitHub，下载并解压 ZIP，再打开 K40-Agent-minimal.apk。无需电脑。\n\n')
+              summary.write('[下载 K40-Agent-controlled.zip](' + os.environ['APK_ARTIFACT_URL'] + ')\n\n')
+              summary.write('请在手机浏览器登录 GitHub，下载并解压 ZIP，再打开 K40-Agent-controlled.apk。无需电脑。\n\n')
               summary.write('下载有效期30天；过期后可以使用 Run workflow 重新构建。若移动页面缺少下载入口，请启用浏览器的桌面版网站。\n')
           PYTHON
       - uses: actions/upload-artifact@v4
@@ -63,7 +63,7 @@ jobs:
             app/build/reports/lint-results-debug.html
 
   publish:
-    if: github.event_name == 'workflow_dispatch' && inputs.publish_release && github.ref == 'refs/heads/main'
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_release && github.ref == 'refs/heads/controlled-automation'
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -71,13 +71,13 @@ jobs:
       contents: write
       actions: read
     concurrency:
-      group: release-v0.2.0-minimal
+      group: release-v0.3.0-controlled
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          name: K40-Agent-minimal
+          name: K40-Agent-controlled
           path: dist
       - name: Verify downloaded artifact
         working-directory: dist
@@ -87,12 +87,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          if gh release view v0.2.0-minimal --json isDraft > release-state.json; then
+          if gh release view v0.3.0-controlled --json isDraft > release-state.json; then
             python3 -c 'import json; assert json.load(open("release-state.json"))["isDraft"], "Release already published; refuse replacement"'
-            gh release edit v0.2.0-minimal --target "$GITHUB_SHA" --notes-file RELEASE_NOTES.md
+            gh release edit v0.3.0-controlled --target "$GITHUB_SHA" --notes-file RELEASE_NOTES.md
           else
-            gh release create v0.2.0-minimal --draft --target "$GITHUB_SHA" --title "K40 Agent v0.2.0-minimal — 最小权限版" --notes-file RELEASE_NOTES.md
+            gh release create v0.3.0-controlled --draft --target "$GITHUB_SHA" --title "K40 Agent v0.3.0-controlled — 受控自动化版" --notes-file RELEASE_NOTES.md
           fi
-          gh release upload v0.2.0-minimal dist/K40-Agent-minimal.apk dist/SHA256SUMS.txt dist/apk-signature.txt --clobber
-          gh release edit v0.2.0-minimal --draft=false --latest
-          gh release view v0.2.0-minimal --json url --jq .url >> "$GITHUB_STEP_SUMMARY"
+          gh release upload v0.3.0-controlled dist/K40-Agent-controlled.apk dist/SHA256SUMS.txt dist/apk-signature.txt --clobber
+          gh release edit v0.3.0-controlled --draft=false --latest
+          gh release view v0.3.0-controlled --json url --jq .url >> "$GITHUB_STEP_SUMMARY"

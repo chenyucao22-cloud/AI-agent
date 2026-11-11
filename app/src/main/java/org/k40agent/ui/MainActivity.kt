@@ -1,12 +1,7 @@
 package org.k40agent.ui
 
-import android.app.KeyguardManager
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
-import android.os.PowerManager
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,81 +9,53 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import org.k40agent.accessibility.ControlledService
 import org.k40agent.automation.*
 
 class MainActivity : ComponentActivity() {
-    private val handler = Handler(Looper.getMainLooper())
-    private val session = LocalSession()
-    private fun available() = UserActionGate.permits(
-        lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED),
-        !getSystemService(KeyguardManager::class.java).isKeyguardLocked,
-        getSystemService(PowerManager::class.java).isInteractive
-    )
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        window.decorView.filterTouchesWhenObscured = true
-        // Incoming intents/extras never execute commands or resume a task.
-        setContent { MaterialTheme { Surface(Modifier.fillMaxSize()) {
-            Column(Modifier.safeDrawingPadding().padding(20.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("K40 Agent 最小版", style = MaterialTheme.typography.headlineMedium)
-                Text("0.2.0 · 无需无障碍或 Shizuku", style = MaterialTheme.typography.titleMedium)
-                Text("本版仅验证打开设置、返回桌面和停止本地任务。没有无障碍服务，不读取其他应用，不点击或滑动其他应用，也没有远程控制。")
-                Text("状态：${AgentState.status}")
-                Button(onClick = { launch(LocalAction.OPEN_SETTINGS) }) { Text("打开 Android 设置（单次）") }
-                Button(onClick = { launch(LocalAction.HOME) }) { Text("返回桌面（单次）") }
-                HorizontalDivider()
-                Text("停止功能测试：启动10秒应用内计时，然后点立即停止。计时结束只更新状态，不执行任何外部操作。离开应用或熄屏会取消计时。")
-                Button(onClick = { startTimer() }) { Text("启动本地计时测试") }
-                Text("剩余 ${AgentState.remaining} 秒")
-                Button(onClick = { stopTimer("已停止；排队回调已撤销") }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) { Text("立即停止") }
-                Text("无需开启系统受限制的设置。如旧版仍已启用无障碍，请在系统中自行停用旧版；最小版不会更改系统权限。")
-                HorizontalDivider()
-                Text("操作日志（仅内存，最多40条）")
-                AgentState.logs.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
-            }
-        } } }
+ override fun onCreate(savedInstanceState: Bundle?) {
+  super.onCreate(savedInstanceState)
+  window.decorView.filterTouchesWhenObscured = true
+  setContent { MaterialTheme { Surface(Modifier.fillMaxSize()) {
+   var task by remember { mutableStateOf<String?>(null) }
+   var adding by remember { mutableStateOf<Pair<String,String>?>(null) }
+   var apps by remember { mutableStateOf(listOf<Pair<String,String>>()) }
+   Column(Modifier.safeDrawingPadding().padding(20.dp).verticalScroll(rememberScrollState()), verticalArrangement=Arrangement.spacedBy(10.dp)) {
+    Text("K40 Agent 受控版",style=MaterialTheme.typography.headlineMedium)
+    Text("0.3.0 · 本机逐次确认 · 无远程控制")
+    Text("状态：${if(AgentState.connected) "无障碍已连接" else "无障碍未连接"} · ${AgentState.status}")
+    Text("任务最长60秒，固定一个白名单应用。选点后按住1.2秒确认，点击/滑动/返回/桌面均需逐次确认。发送、删除、付款等重要动作请核对实际屏幕。界面变化会撤销确认。")
+    Button(onClick={ ControlledService.instance?.stop(); startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }) { Text("打开系统无障碍设置") }
+    Text("Android 13 对部分侧载来源限制开启无障碍。必须由你在系统中手动授权；如果系统仍阻止，请保留限制。本应用不使用 adb、Shizuku、Root 或写系统设置解除保护。未授权就不能自动操作。")
+    Button(onClick={ ControlledService.instance?.stop() },colors=ButtonDefaults.buttonColors(containerColor=MaterialTheme.colorScheme.error)) { Text("立即停止") }
+    HorizontalDivider(); Text("任务目标 / 白名单")
+    AgentState.allowed.sorted().forEach { pkg ->
+     Text(pkg)
+     Row {
+      Button(enabled=AgentState.connected,onClick={ task=pkg }) { Text("启动此应用任务…") }
+      if(pkg !in setOf(packageName,"com.android.settings")) TextButton(onClick={ ControlledService.instance?.changeAllowed(pkg,false) }) { Text("移除") }
+     }
     }
-    private fun launch(action: LocalAction) {
-        if (!available()) { stopTimer("拒绝操作：应用不在前台或设备未解锁"); return }
-        stopTimer("本地计时已取消")
-        val intent = when (action) {
-            LocalAction.OPEN_SETTINGS -> Intent(Settings.ACTION_SETTINGS).setPackage("com.android.settings")
-            LocalAction.HOME -> Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)
-        }
-        try {
-            startActivity(intent)
-            AgentState.log(if (action == LocalAction.OPEN_SETTINGS) "已请求打开系统设置" else "已请求返回桌面")
-        } catch (_: ActivityNotFoundException) { AgentState.log("系统未提供可用的目标页面") }
-          catch (_: SecurityException) { AgentState.log("系统拒绝启动目标页面") }
-    }
-    private fun startTimer() {
-        if (!available()) return
-        stopTimer("开始本地计时")
-        val token = session.start()
-        AgentState.remaining = session.remaining
-        handler.postDelayed(object : Runnable {
-            override fun run() {
-                if (!available()) { stopTimer("计时已取消：应用离开前台或设备锁定"); return }
-                if (!session.tick(token)) return
-                AgentState.remaining = session.remaining
-                if (session.active) handler.postDelayed(this, 1000)
-                else AgentState.log("计时结束；未执行外部操作")
-            }
-        }, 1000)
-    }
-    private fun stopTimer(message: String) {
-        session.stop(); handler.removeCallbacksAndMessages(null)
-        AgentState.remaining = 0; AgentState.log(message)
-    }
-    override fun onPause() {
-        if (session.active) stopTimer("应用离开前台；计时已停止")
-        super.onPause()
-    }
-    override fun onDestroy() {
-        session.stop(); handler.removeCallbacksAndMessages(null)
-        super.onDestroy()
-    }
+    OutlinedButton(enabled=AgentState.connected,onClick={
+     ControlledService.instance?.stop("选择白名单：任务停止")
+     val query=Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+     apps=packageManager.queryIntentActivities(query,0).map { it.activityInfo.packageName to it.loadLabel(packageManager).toString() }.distinctBy { it.first }.filter { it.first !in AgentState.allowed && PackagePolicy.canAdd(it.first) }.sortedBy { it.second }
+    }) { Text("选择可启动应用加入白名单") }
+    apps.forEach { app -> TextButton(onClick={adding=app}) { Text("添加 ${app.second} (${app.first})") } }
+    Text("仅读取窗口包名、ID、边界和旋转状态；不遍历节点，不读取文字、密码、验证码或支付信息，不截图、不联网。键盘或安全窗口出现会停止。Android 没有原子化确认执行接口，无法完全消除最后瞬间的界面变化；本版不是无人值守业务自动化。")
+    Text("停止撤销未提交动作；已交给系统的150ms手势和已完成的操作不能保证撤回。")
+    HorizontalDivider(); Text("本机内存日志（50条，无屏幕内容）")
+    AgentState.logs.forEach { Text(it,style=MaterialTheme.typography.bodySmall) }
+   }
+   task?.let { pkg -> AlertDialog(onDismissRequest={task=null},title={Text("启动60秒任务？")},text={Text("目标：$pkg。将打开此应用并显示控制条；每次操作仍须本机按住确认。")},confirmButton={TextButton(onClick={
+    if(lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) ControlledService.instance?.startTask(pkg)
+    task=null
+   }){Text("我主动启动")}},dismissButton={TextButton(onClick={task=null}){Text("取消")}}) }
+   adding?.let { app -> AlertDialog(onDismissRequest={adding=null},title={Text("允许 ${app.second}？")},text={Text("包名：${app.first}。只允许你启动后的逐次确认操作。不要加入密码管理器、认证或支付应用。")},confirmButton={TextButton(onClick={ControlledService.instance?.changeAllowed(app.first,true); apps=emptyList(); adding=null}){Text("确认加入")}},dismissButton={TextButton(onClick={adding=null}){Text("取消")}}) }
+  } } }
+ }
 }

@@ -1,0 +1,1 @@
+PASS: no requested permissions/network, one protected accessibility service, no receivers/providers, no debugging/backup, gestures enabled, no screenshot/key filtering or old modules
