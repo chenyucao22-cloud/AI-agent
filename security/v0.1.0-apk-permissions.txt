@@ -1,0 +1,4 @@
+package: org.k40agent
+permission: org.k40agent.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION
+uses-permission: name='org.k40agent.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
+uses-permission: name='moe.shizuku.manager.permission.API_V23'

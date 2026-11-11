@@ -1,44 +1,11 @@
-# 实际构建报告
+# v0.2.0-minimal 验证结果
 
-日期：2026-11-11T00:53:25+08:00（Asia/Shanghai）
+2026-11-11（Asia/Shanghai）。本地 `assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest` 成功。JVM测试 5 项通过，Lint 0错误、4项版本更新提示警告。设备测试APK仅编译，未在设备执行。
 
-## 结果
+成品 APK 检查：零申请权限、零自定义权限、零 Service/Receiver/Provider、无已移除的业务模块/ Shizuku 类；单一 Launcher Activity；禁用调试与备份。旧 v0.1.0 APK 被同一门禁拒绝，证明检查并非固定通过。
 
-- `assembleDebug`：成功，APK 为 `app/build/outputs/apk/debug/app-debug.apk`。
-- `testDebugUnitTest`：7 项通过，0失败、0错误。
-- `lintDebug`：0错误，8项警告。
-- `assembleDebugAndroidTest`：成功，设备测试 APK 可编译；**未执行 connectedDebugAndroidTest 或 K40 真机验收**。
-- APK Signature Scheme v2 校验通过；minSdk 33，targetSdk 36。
-- 合并 Manifest 检查无 INTERNET 权限，无截图/网络上传接口。
-- 没有执行真实消息发送、付款或删除文件。
-- APK 大小：26462983 bytes。
-- SHA-256：`13f0bc56982024fc4e51a741d0f1382a606c642b3899855c4dc952c7e863fed3`。
+本地 APK 大小：20766155 字节；SHA-256：`ace1902e72fa1bb77c9e3a4a5c65d3873c2a96fdb87899162bc709b5a709af42`。这是工作区构建的校验值，**不能用于 GitHub Actions 重新签名后的发布 APK**；发布件校验值以该 Release 的 SHA256SUMS.txt 为准。
 
-## 环境与复现
+日志、测试XML、成品Manifest见 security/v0.2.0-local-verification。旧报告已移入 security/v0.1.0-local-verification。
 
-云环境最初没有 Android SDK，Java 21 仅为 JRE，无 javac。已在工作区安装官方 Android SDK Platform 36、Build Tools 36.0.0、Platform Tools、Temurin JDK17 和 Gradle8.13。首次构建失败原因已解决。SDK/Gradle 的缓存与用户目录放在工作区；下载 JDK 使用系统 CA trust store 适配云代理，未关闭证书验证。标准 Android Studio / GitHub Actions 无需这些云代理设置。
-
-最终执行：
-
-```sh
-./gradlew --no-daemon assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest
-```
-
-构建日志保存在 `verification/build.log`，JVM 测试 XML 和 Lint 报告保存在 `verification/`。设备端测试未运行：本次未连接目标手机；云端 adb 初始化还受默认用户目录只读限制。未声称真机或 MIUI 无障碍行为已通过。
-
-## 剩余 Lint 警告
-
-- `AndroidGradlePluginVersion`：A newer version of Gradle than 8.13 is available: 8.14.6
-- `GradleDependency`：A newer version of androidx.compose:compose-bom than 2025.10.01 is available: 2026.09.00
-- `GradleDependency`：A newer version of androidx.activity:activity-compose than 1.11.0 is available: 1.13.0
-- `GradleDependency`：A newer version of androidx.lifecycle:lifecycle-runtime-ktx than 2.9.4 is available: 2.11.0
-- `UseKtx`：Use the KTX extension function `SharedPreferences.edit` instead?
-- `SetTextI18n`：String literal in `setText` can not be translated. Use Android resources instead.
-- `SetTextI18n`：String literal in `setText` can not be translated. Use Android resources instead.
-- `SetTextI18n`：String literal in `setText` can not be translated. Use Android resources instead.
-
-依赖更新提示不影响本次固定稳定版本的构建；界面目前仅提供中文，部分原生控制条字符串尚未资源化。
-
-## 交付位置
-
-完整工程位于 `/workspace/work/k40-agent`。指定的 `/codex/browser/projectless/0001-qq-codex/output` 在此云执行环境不存在，当前用户无法创建且 sudo 不可用，因此保留工作区中的工程和构建产物。初次本地构建时尚未上传；现已提交至 https://github.com/chenyucao22-cloud/AI-agent 。GitHub Actions 的实时结果以仓库 Actions 运行记录为准，Release APK 由通过测试和签名验证的发布工作流提供。
+GitHub Actions 将独立运行相同构建/检查，再验证 APK 签名后发布。实际云端状态以 Actions 记录为准。红米 K40 真机验证尚未执行；请按照 PHONE_INSTALL.md 测试普通导航和计时取消，勿开启旧版受限权限。

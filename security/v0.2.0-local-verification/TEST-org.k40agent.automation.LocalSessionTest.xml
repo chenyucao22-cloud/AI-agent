@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="org.k40agent.automation.LocalSessionTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-11T00:38:06.415Z" hostname="424268f0b157" time="0.056">
+  <properties/>
+  <testcase name="restartingRejectsOldCallback" classname="org.k40agent.automation.LocalSessionTest" time="0.002"/>
+  <testcase name="actionsRequireForegroundUnlockedInteractiveDevice" classname="org.k40agent.automation.LocalSessionTest" time="0.052"/>
+  <testcase name="idleCannotTick" classname="org.k40agent.automation.LocalSessionTest" time="0.001"/>
+  <testcase name="stopRevokesPendingCallback" classname="org.k40agent.automation.LocalSessionTest" time="0.0"/>
+  <testcase name="timerEndsWithoutFurtherCallbacks" classname="org.k40agent.automation.LocalSessionTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

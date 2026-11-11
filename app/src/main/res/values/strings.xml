@@ -1,1 +1,1 @@
-<resources><string name="app_name">K40 Agent</string><string name="accessibility_description">仅在您启动的本地任务期间操作白名单应用。只读取节点结构与位置，不读取文字或截图。点击和滑动需本机确认，可随时停止。</string></resources>
+<resources><string name="app_name">K40 Agent 最小版</string></resources>

@@ -1,0 +1,2 @@
+PASS: zero permissions/services/receivers/providers; no retired modules; no debugging/backup; minimal package
+Regression: old v0.1.0 APK was rejected by minimal artifact gate.

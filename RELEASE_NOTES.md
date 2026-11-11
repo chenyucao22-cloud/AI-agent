@@ -1,13 +1,15 @@
-K40 Agent 0.1.0 — 本地功能预览版（Debug APK）
+K40 Agent 0.2.0 最小权限版
 
-手机浏览器直接点击 **Assets → K40-Agent-debug.apk** 下载，用文件管理器打开后按系统提示安装，无需电脑或解压。
+直接下载 Assets 中 **K40-Agent-minimal.apk**。无需电脑、解压、无障碍或 Shizuku。
 
-- APK 来自此版本源码的 GitHub Actions 成功构建，已运行单元测试与 Lint，并通过 apksigner 签名校验。
-- Android 13及以上，minSdk33、targetSdk36。
-- 默认白名单只有本应用和 Android 设置，所有任务由本机用户主动启动。
-- 没有远程控制、网络上传、UI文字读取或截图采集功能；Shizuku 为可选状态检测。
-- 安装后手动启用系统无障碍服务，先验证打开设置、返回桌面、停止任务。
-- 尚未完成红米 K40 真机验收，不用消息发送、付款或删除操作进行首次测试。
-- Debug 开发签名用于预览。GitHub 构建使用的开发签名与早前云工作区 APK 可能不同；首次安装不受影响。若旧版签名不同，覆盖安装会被 Android 拒绝。
+安全审查与修复详情见仓库 SECURITY_REVIEW.md，包含旧版真实 APK 权限清单和固定源码位置。
 
-校验信息：SHA256SUMS.txt、apk-signature.txt。完整源码可在本仓库查看。
+- 成品零权限申请，无 AccessibilityService、ShizukuProvider、接收器或初始化 Provider。
+- 不读取其他应用节点/文字，不截图，不联网、不远程执行，无跨应用点击/滑动。
+- 仅本机用户按钮触发打开设置或回桌面；停止测试为应用内10秒计时，离开前台会取消。
+- debuggable=false，禁用备份；仍使用开发签名。
+- 独立包名 org.k40agent.minimal，可与旧版并存；请自行在系统中停用旧版无障碍，最小版不会替你修改权限。
+- 未绕过 Android 受限制设置。最小版没有需要启用的无障碍服务，也不等同于完整自动化版本。
+- GitHub Actions 构建、测试、成品权限门禁及签名校验成功后发布；尚未完成 K40 真机验证。
+
+附 SHA256SUMS.txt 与 apk-signature.txt。
